@@ -218,12 +218,12 @@ def main(args):
     data_loader_val = DataLoader(dataset_val, args.batch_size, sampler=sampler_val,
                                  drop_last=False, collate_fn=utils.collate_fn_st, num_workers=args.num_workers)
 
-    if args.dataset_file == "coco_panoptic":
-        # We also evaluate AP during panoptic training, on original coco DS
-        coco_val = datasets.coco.build("val", args)
-        base_ds = get_coco_api_from_dataset(coco_val)
-    else:
-        base_ds = get_coco_api_from_dataset(dataset_val)
+    # if args.dataset_file == "coco_panoptic":
+    #     # We also evaluate AP during panoptic training, on original coco DS
+    #     coco_val = datasets.coco.build("val", args)
+    #     base_ds = get_coco_api_from_dataset(coco_val)
+    # else:
+    #     base_ds = get_coco_api_from_dataset(dataset_val)
 
     if args.frozen_weights is not None:
         checkpoint = torch.load(args.frozen_weights, map_location='cpu')
@@ -241,13 +241,13 @@ def main(args):
             lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
             args.start_epoch = checkpoint['epoch'] + 1
 
-    if args.eval:
-        
-        test_stats = test_st(
-            model, criterion, postprocessors, data_loader_val, base_ds, device,logger,checkpoint['epoch'], str(output_dir)
-        )
-        
-        return
+    # if args.eval:
+    #     
+    #     test_stats = test_st(
+    #         model, criterion, postprocessors, data_loader_val, base_ds, device,logger,checkpoint['epoch'], str(output_dir)
+    #     )
+    #     
+    #     return
 
 #     print("Start training")
     logger.info("Start training")
@@ -276,7 +276,8 @@ def main(args):
                 }, checkpoint_path)
 
         test_stats = evaluate_st(
-            model, criterion, postprocessors, data_loader_val, base_ds, device,logger,epoch, str(output_dir)
+            #model, criterion, postprocessors, data_loader_val, base_ds, device,logger,epoch, str(output_dir)
+            model, criterion, postprocessors, data_loader_val, None, device,logger,epoch, str(output_dir)
         )
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
@@ -296,5 +297,27 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('DETR training and evaluation script', parents=[get_args_parser()])
-    args = parser.parse_args()
+    #args = parser.parse_args()
+    args = parser.parse_args([
+                          "--batch_size","1",
+                          "--fold_k","5",
+                          "--lr_backbone","1e-5",
+                          "--lr","1e-5",
+                          "--enc_layers","6",
+                          "--dec_layers","6",
+                          "--model_type","nofold",
+                          "--enorm","--dnorm","--tnorm",
+                          "--cbackbone_layer","2","--sbackbone_layer","4",
+                          "--num_workers", "1",
+                          "--style_loss_coef", "0.1",
+                          "--content_loss_coef", "0.1",
+                          
+                          "--dataset_file","demo",
+                          #"--resume","checkpoint_model/checkpoint0005.pth"  , # we dont want to resume from checkpoint!
+                          "--img_size","408",
+                          #"--img_size","256",
+                          #"--in_content_folder","inputs/content",
+                          #"--style_folder","inputs/style",
+                          "--output_dir","outputs",
+                             ])
     main(args)

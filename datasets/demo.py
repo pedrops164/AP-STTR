@@ -233,8 +233,10 @@ def make_coco_transforms(image_set):
 
 
 def build(image_set, args):
-    content_folder = Path(args.in_content_folder)
-    style_folder = Path(args.style_folder)
+    #content_folder = Path(args.in_content_folder)
+    content_folder = Path("inputs/content/")
+    #style_folder = Path(args.style_folder)
+    style_folder = Path("inputs/style/")
     assert content_folder.exists(), f'provided COCO path {content_folder} does not exist'
     assert style_folder.exists(), f'provided wikiart path {style_folder} does not exist'
 

@@ -231,7 +231,6 @@ if __name__ == '__main__':
     
     args = parser.parse_args([
                           "--batch_size","1",
-                          "--style_loss_coef","10",
                           "--fold_k","5",
                           "--lr_backbone","1e-5",
                           "--lr","1e-5",
@@ -240,10 +239,13 @@ if __name__ == '__main__':
                           "--model_type","nofold",
                           "--enorm","--dnorm","--tnorm",
                           "--cbackbone_layer","2","--sbackbone_layer","4",
+                          "--num_workers", "1",
                           
                           "--dataset_file","demo",
-                          "--resume","checkpoint_model/checkpoint0005.pth"  ,
-                          "--img_size","512",
+                          #"--resume","checkpoint_model/checkpoint0005.pth"  ,
+                          "--resume","outputs/nofold_noLN_contentMstyleM_dataN_enormTrue_dnormTrue_tnormTrue_cbl2_sbl4_batch1_k5_s6_lrb1e-05_lr1e-05_cw0.1_sw0.1_tw0_elyers6_dlyers6_h8_maxsize408/checkpoint/checkpoint0040.pth"  ,
+                          "--img_size","408",
+                          #"--img_size","256",
                           "--in_content_folder","inputs/content",
                           "--style_folder","inputs/style",
                           "--output_dir","outputs",
