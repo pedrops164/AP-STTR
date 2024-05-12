@@ -311,15 +311,15 @@ if __name__ == '__main__':
                           "--enorm","--dnorm","--tnorm",
                           "--cbackbone_layer","2","--sbackbone_layer","4",
                           "--num_workers", "1",
-                          "--style_loss_coef", "0.1",
-                          "--content_loss_coef", "0.1",
+                          "--style_loss_coef", "1e4",
+                          "--content_loss_coef", "1",
                           
                           "--dataset_file","demo",
                           #"--resume","checkpoint_model/checkpoint0005.pth"  , # we dont want to resume from checkpoint!
-                          "--img_size","408",
-                          #"--img_size","256",
-                          #"--in_content_folder","inputs/content",
-                          #"--style_folder","inputs/style",
+                          #"--img_size","408",
+                          "--img_size","256",
+                          "--in_content_folder","content100",
+                          "--style_folder","style100",
                           "--output_dir","outputs",
                              ])
     main(args)
