@@ -13,11 +13,12 @@ from torch.utils.data import DataLoader, DistributedSampler
 import datasets
 import util.misc as utils
 from datasets import build_dataset, get_coco_api_from_dataset
-from engine import evaluate_st, train_one_epoch_st,test_st
+from engine import evaluate_st, train_one_epoch_st, test_st
 from models_istt import build_model
 import logging
 import pprint
 import os
+import matplotlib.pyplot as plt  # Importação da biblioteca matplotlib
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Set transformer detector', add_help=False)
@@ -277,13 +278,13 @@ def main(args):
                     'args': args,
                 }, checkpoint_path)
 
-        test_stats = evaluate_st(
-            #model, criterion, postprocessors, data_loader_val, base_ds, device,logger,epoch, str(output_dir)
-            model, criterion, postprocessors, data_loader_val, None, device,logger,epoch, str(output_dir)
-        )
+        #test_stats = evaluate_st(
+        #    #model, criterion, postprocessors, data_loader_val, base_ds, device,logger,epoch, str(output_dir)
+        #    model, criterion, postprocessors, data_loader_val, None, device,logger,epoch, str(output_dir)
+        #)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-                     **{f'test_{k}': v for k, v in test_stats.items()},
+                     #**{f'test_{k}': v for k, v in test_stats.items()},
                      'epoch': epoch,
                      'n_parameters': n_parameters}
 
@@ -311,15 +312,16 @@ if __name__ == '__main__':
                           "--enorm","--dnorm","--tnorm",
                           "--cbackbone_layer","2","--sbackbone_layer","4",
                           "--num_workers", "1",
-                          "--style_loss_coef", "1e4",
+                          "--style_loss_coef", "1",
                           "--content_loss_coef", "1",
                           
                           "--dataset_file","demo",
                           #"--resume","checkpoint_model/checkpoint0005.pth"  , # we dont want to resume from checkpoint!
-                          #"--img_size","408",
                           "--img_size","256",
                           "--in_content_folder","content100",
                           "--style_folder","style100",
+                          #"--in_content_folder","inputs/content100",
+                          #"--style_folder","inputs/style100",
                           "--output_dir","outputs",
                              ])
     main(args)

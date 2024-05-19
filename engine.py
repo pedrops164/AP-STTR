@@ -4,6 +4,7 @@ Train and eval functions used in main.py
 """
 import math
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import sys
 from typing import Iterable
 
@@ -16,6 +17,7 @@ from torchvision.utils import save_image
 from datasets.demo import denorm
 import shutil
 import pandas as pd
+import matplotlib.pyplot as plt  # Importação da biblioteca matplotlib
 
 # ----------------------------------------------------------------------------------
 def train_one_epoch_st(model: torch.nn.Module, criterion: torch.nn.Module,
@@ -25,12 +27,13 @@ def train_one_epoch_st(model: torch.nn.Module, criterion: torch.nn.Module,
     criterion.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
-#     metric_logger.add_meter('class_error', utils.SmoothedValue(window_size=1, fmt='{value:.2f}'))
     header = 'Epoch: [{}]'.format(epoch)
     print_freq = 100
 
-    for it,(samples,style_images, targets) in metric_logger.log_every(data_loader, print_freq,logger, header):
-#         
+    content_losses = []
+    style_losses = []
+
+    for it, (samples, style_images, targets) in metric_logger.log_every(data_loader, print_freq, logger, header):
         samples = samples.to(device)
         style_images = style_images.to(device)
 #         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
@@ -41,6 +44,10 @@ def train_one_epoch_st(model: torch.nn.Module, criterion: torch.nn.Module,
         loss_dict = criterion(outputs, samples,style_images)
         weight_dict = criterion.weight_dict
         losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
+
+        # Save content and style losses
+        content_losses.append(loss_dict['loss_content'].item())
+        style_losses.append(loss_dict['loss_style'].item())
 
         # reduce losses over all GPUs for logging purposes
         loss_dict_reduced = utils.reduce_dict(loss_dict)
@@ -80,7 +87,6 @@ def train_one_epoch_st(model: torch.nn.Module, criterion: torch.nn.Module,
         optimizer.step()
 
         metric_logger.update(loss=loss_value, **loss_dict_reduced_scaled, **loss_dict_reduced_unscaled)
-#         metric_logger.update(class_error=loss_dict_reduced['class_error'])
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
 
         if it % 4000==0:
@@ -97,6 +103,18 @@ def train_one_epoch_st(model: torch.nn.Module, criterion: torch.nn.Module,
             }, checkpoint_path)
 
         torch.cuda.empty_cache()
+    # Plot and save the graphs for content and style losses
+    plt.figure(figsize=(10, 5))
+    plt.plot(content_losses, label='Content Loss')
+    plt.plot(style_losses, label='Style Loss')
+    #plt.plot(losses_array, label='Total Loss')
+    plt.xlabel('Iteration')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.title(f'Epoch {epoch} - Content and Style Losses')
+    plt.savefig(os.path.join(save_path, f'losses_epoch_{epoch:04}.png'))
+    plt.close()
+
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     logger.info("Averaged stats:{}".format(metric_logger))
