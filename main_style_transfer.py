@@ -255,12 +255,18 @@ def main(args):
 #     print("Start training")
     logger.info("Start training")
 
+    content_losses_global = []
+    style_losses_global = []
+
     start_time = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             sampler_train.set_epoch(epoch)
         train_stats = train_one_epoch_st(
-            model, criterion, data_loader_train, optimizer, lr_scheduler,device,logger, epoch,str(output_dir),args,args.clip_max_norm)
+            model, criterion, data_loader_train, optimizer, lr_scheduler,device,logger, epoch,str(output_dir),args, content_losses_global, style_losses_global,args.clip_max_norm)
+
+        print(f"Accumulated Content Losses main: {len(content_losses_global)}")
+        print(f"Accumulated Style Losses main: {len(style_losses_global)}")
         lr_scheduler.step()
         if args.output_dir:
             Path(output_dir / "checkpoint").mkdir(parents=True, exist_ok=True)
@@ -295,7 +301,24 @@ def main(args):
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    print('Training time {}'.format(total_time_str))
+    print('Training time {}'.format(total_time_str))# Print accumulated losses to debug
+
+    # Plot and save the graphs for content and style losses
+    plt.figure(figsize=(10, 5))
+    plt.plot(content_losses_global, label='Content Loss')
+    plt.xlabel('Iteration')
+    plt.ylabel('Content Loss')
+    plt.title('Content Loss over Iterations')
+    plt.savefig(os.path.join(output_dir, 'content_loss.png'))
+    plt.close()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(style_losses_global, label='Style Loss')
+    plt.xlabel('Iteration')
+    plt.ylabel('Style Loss')
+    plt.title('Style Loss over Iterations')
+    plt.savefig(os.path.join(output_dir, 'style_loss.png'))
+    plt.close()
 
 
 if __name__ == '__main__':
@@ -314,14 +337,15 @@ if __name__ == '__main__':
                           "--num_workers", "1",
                           "--style_loss_coef", "1",
                           "--content_loss_coef", "1",
+                          "--epochs", "6",
                           
                           "--dataset_file","demo",
                           #"--resume","checkpoint_model/checkpoint0005.pth"  , # we dont want to resume from checkpoint!
                           "--img_size","256",
-                          "--in_content_folder","content100",
-                          "--style_folder","style100",
-                          #"--in_content_folder","inputs/content100",
-                          #"--style_folder","inputs/style100",
+                          #"--in_content_folder","content100",
+                          #"--style_folder","style100",
+                          "--in_content_folder","inputs/content100",
+                          "--style_folder","inputs/style100",
                           "--output_dir","outputs",
                              ])
     main(args)

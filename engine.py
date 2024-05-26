@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt  # Importação da biblioteca matplotlib
 # ----------------------------------------------------------------------------------
 def train_one_epoch_st(model: torch.nn.Module, criterion: torch.nn.Module,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,lr_scheduler,
-                    device: torch.device,logger, epoch: int, save_path:str,args,max_norm: float = 0):
+                    device: torch.device,logger, epoch: int, save_path:str,args, content_losses_global, style_losses_global,max_norm: float = 0):
     model.train()
     criterion.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -103,17 +103,14 @@ def train_one_epoch_st(model: torch.nn.Module, criterion: torch.nn.Module,
             }, checkpoint_path)
 
         torch.cuda.empty_cache()
-    # Plot and save the graphs for content and style losses
-    plt.figure(figsize=(10, 5))
-    plt.plot(content_losses, label='Content Loss')
-    plt.plot(style_losses, label='Style Loss')
-    #plt.plot(losses_array, label='Total Loss')
-    plt.xlabel('Iteration')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.title(f'Epoch {epoch} - Content and Style Losses')
-    plt.savefig(os.path.join(save_path, f'losses_epoch_{epoch:04}.png'))
-    plt.close()
+
+    # Accumulate the losses globally
+    content_losses_global.extend(content_losses)
+    style_losses_global.extend(style_losses)
+    
+
+    print(f"Accumulated Content Losses engine: {len(content_losses_global)}")
+    print(f"Accumulated Style Losses engine: {len(style_losses_global)}")
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
