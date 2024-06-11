@@ -1,6 +1,6 @@
 # Style Transfer Transformer (*STTR*)
 
-Image Style Transfer is a computer vision techique that combines a content image and a style image originating a thrid output image that preserves both the content and style.
+**Image Style Transfer** is a computer vision techique that combines a content image and a style image originating a thrid output image that preserves both the content and style.
 
 ![imagem](https://github.com/pedrops164/AP-STTR/assets/73351929/ba4741a7-d368-43f9-8111-4aae939dbd74) 
 
